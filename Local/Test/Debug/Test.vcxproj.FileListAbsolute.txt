@@ -1,0 +1,2 @@
+C:\Users\falk1\OneDrive\Documents\AAU\P3\RoboticsP3_366\Local\Test\Debug\Test.exe
+C:\Users\falk1\OneDrive\Documents\AAU\P3\RoboticsP3_366\Local\Test\Debug\Test.pdb
