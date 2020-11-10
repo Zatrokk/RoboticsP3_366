@@ -1,4 +1,4 @@
-﻿  Trying.cpp
+﻿  Experimenting_sdk.cpp
 C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\Local\Trying\Include\dynamixel_sdk\group_bulk_read.h(43,43): warning C4251: 'dynamixel::GroupBulkRead::id_list_': class 'std::vector<uint8_t,std::allocator<uint8_t>>' needs to have dll-interface to be used by clients of class 'dynamixel::GroupBulkRead'
 C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\Local\Trying\Include\dynamixel_sdk\packet_handler.h(205): message : see declaration of 'std::vector<uint8_t,std::allocator<uint8_t>>'
 C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\Local\Trying\Include\dynamixel_sdk\group_bulk_read.h(44,48): warning C4251: 'dynamixel::GroupBulkRead::address_list_': class 'std::map<uint8_t,uint16_t,std::less<uint8_t>,std::allocator<std::pair<const uint8_t,uint16_t>>>' needs to have dll-interface to be used by clients of class 'dynamixel::GroupBulkRead'

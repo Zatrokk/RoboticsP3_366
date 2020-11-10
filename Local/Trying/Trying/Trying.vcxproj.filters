@@ -18,5 +18,8 @@
     <ClCompile Include="Trying.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Experimenting_sdk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
