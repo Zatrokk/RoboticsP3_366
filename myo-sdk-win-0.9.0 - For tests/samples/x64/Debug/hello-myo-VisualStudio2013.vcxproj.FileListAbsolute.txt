@@ -1,0 +1,2 @@
+C:\Users\falk1\Downloads\myo-sdk-win-0.9.0 (1)\myo-sdk-win-0.9.0\samples\x64\Debug\hello-myo-VisualStudio2013.exe
+C:\Users\falk1\Downloads\myo-sdk-win-0.9.0 (1)\myo-sdk-win-0.9.0\samples\x64\Debug\hello-myo-VisualStudio2013.pdb
