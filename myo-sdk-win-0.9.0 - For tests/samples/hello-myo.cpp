@@ -7,9 +7,44 @@
 #include <stdexcept>
 #include <string>
 #include <algorithm>
-
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
+
+#include <conio.h>
+#include <Windows.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#include "../../DynamixelSDK-3.7.31/c++/include/dynamixel_sdk/dynamixel_sdk.h"                 // Uses Dynamixel SDK library
+
+
+// Control table address
+#define ADDR_PRO_TORQUE_ENABLE          64                  // Control table address is different in Dynamixel model
+#define ADDR_PRO_GOAL_POSITION          116
+#define ADDR_PRO_PRESENT_POSITION       132
+#define ADDR_PRO_PROFILE_VELOCITY       112
+
+// Protocol version
+#define PROTOCOL_VERSION                2.0                 // See which protocol version is used in the Dynamixel
+
+// Default setting
+#define DXL_ID                          3                   // Dynamixel ID: 1
+#define BAUDRATE                        57600
+#define DEVICENAME                      "COM3"              // Check which port is being used on your controller
+                                                            // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
+
+#define TORQUE_ENABLE                   1                   // Value for enabling the torque
+#define TORQUE_DISABLE                  0                   // Value for disabling the torque
+#define DXL_MINIMUM_POSITION_VALUE      750                 // Dynamixel will rotate between this value
+#define DXL_MAXIMUM_POSITION_VALUE      3300                // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
+#define DXL_VELOCITY_VALUE              50                  // Value of the dynamixel velocity
+#define DXL_POSITION_CHANGE_SAMPLE      25                  // Value of the change of goal position, each sample
+#define DXL_MOVING_STATUS_THRESHOLD     20                  // Dynamixel moving status threshold
+#define DXL_CLOSED_GRIPPER_VALUE        2025                   //Value for the position of the dynamixel to close,
+#define DXL_OPEN_GRIPPER_VALUE          1500                   //and open the gripper
+
+
+
 
 // Classes that inherit from myo::DeviceListener can be used to receive events from Myo devices. DeviceListener
 // provides several virtual functions for handling different kinds of events. If you do not override an event, the
