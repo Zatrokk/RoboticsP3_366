@@ -2,7 +2,8 @@
 // Distributed under the Myo SDK license agreement. See LICENSE.txt for details.
 #pragma once
 
-#include <myo/libmyo.h>
+//#include <myo/libmyo.h>
+#include "../libmyo.h"
 
 namespace myo {
 

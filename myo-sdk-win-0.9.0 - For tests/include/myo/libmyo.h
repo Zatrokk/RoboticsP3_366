@@ -234,20 +234,20 @@ libmyo_result_t libmyo_myo_notify_user_action(libmyo_myo_t myo, libmyo_user_acti
 
 /// Types of events.
 typedef enum {
-    libmyo_event_paired,           ///< Successfully paired with a Myo.
-    libmyo_event_unpaired,         ///< Successfully unpaired from a Myo.
-    libmyo_event_connected,        ///< A Myo has successfully connected.
-    libmyo_event_disconnected,     ///< A Myo has been disconnected.
-    libmyo_event_arm_synced,       ///< A Myo has recognized that the sync gesture has been successfully performed.
-    libmyo_event_arm_unsynced,     ///< A Myo has been moved or removed from the arm.
-    libmyo_event_orientation,      ///< Orientation data has been received.
-    libmyo_event_pose,             ///< A change in pose has been detected. @see libmyo_pose_t.
-    libmyo_event_rssi,             ///< An RSSI value has been received.
-    libmyo_event_unlocked,         ///< A Myo has become unlocked.
-    libmyo_event_locked,           ///< A Myo has become locked.
-    libmyo_event_emg,              ///< EMG data has been received.
-    libmyo_event_battery_level,    ///< A battery level value has been received.
-    libmyo_event_warmup_completed, ///< The warmup period has completed.
+    libmyo_event_paired,           ///< Successfully paired with a Myo. 0
+    libmyo_event_unpaired,         ///< Successfully unpaired from a Myo. 1
+    libmyo_event_connected,        ///< A Myo has successfully connected. 2
+    libmyo_event_disconnected,     ///< A Myo has been disconnected. 3
+    libmyo_event_arm_synced,       ///< A Myo has recognized that the sync gesture has been successfully performed. 4
+    libmyo_event_arm_unsynced,     ///< A Myo has been moved or removed from the arm. 5
+    libmyo_event_orientation,      ///< Orientation data has been received. 6
+    libmyo_event_pose,             ///< A change in pose has been detected. @see libmyo_pose_t. 7
+    libmyo_event_rssi,             ///< An RSSI value has been received. 8
+    libmyo_event_unlocked,         ///< A Myo has become unlocked. 9
+    libmyo_event_locked,           ///< A Myo has become locked. 10
+    libmyo_event_emg,              ///< EMG data has been received. 11
+    libmyo_event_battery_level,    ///< A battery level value has been received. 12
+    libmyo_event_warmup_completed, ///< The warmup period has completed. 13
 } libmyo_event_type_t;
 
 /// Information about an event.

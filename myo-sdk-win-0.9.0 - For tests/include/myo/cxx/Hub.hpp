@@ -4,7 +4,8 @@
 
 #include <vector>
 
-#include <myo/libmyo.h>
+//#include <myo/libmyo.h>
+#include "../libmyo.h"
 
 namespace myo {
 

@@ -1,0 +1,2 @@
+C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\myo-sdk-win-0.9.0 - For tests\samples\StrikeAPose\Debug\StrikeAPose.exe
+C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\myo-sdk-win-0.9.0 - For tests\samples\StrikeAPose\Debug\StrikeAPose.pdb
