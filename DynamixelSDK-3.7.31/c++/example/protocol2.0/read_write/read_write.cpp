@@ -99,6 +99,7 @@ int main()
     int32_t dxl_present_position = 0;               // Present position
     uint32_t gripperCurrentPosition;
     int gripperGoalPosition;
+    int positionChange;
 
     // Open port
     if (!succesTest(portHandler->openPort(), 1))
@@ -143,7 +144,7 @@ int main()
             if (a != currentMotor)
             {
                 currentMotor = a;
-                resultPrint(dxl_comm_result = packetHandler->write4ByteTxRx(portHandler, currentMotor, ADDR_PRO_PROFILE_VELOCITY, DXL_VELOCITY_VALUE, &dxl_error), dxl_error, packetHandler);
+                resultPrint(packetHandler->write4ByteTxRx(portHandler, currentMotor, ADDR_PRO_PROFILE_VELOCITY, DXL_VELOCITY_VALUE, &dxl_error), dxl_error, packetHandler);
                 //switch to min/max value of current motor
                 switch (currentMotor)
                 {
@@ -179,7 +180,11 @@ int main()
             resultPrint(packetHandler->read4ByteTxRx(portHandler, currentMotor, ADDR_PRO_PRESENT_POSITION, (uint32_t*)&dxl_present_position, &dxl_error), dxl_error, packetHandler);
             resultPrint(packetHandler->read4ByteTxRx(portHandler, 4, ADDR_PRO_PRESENT_POSITION, (uint32_t*)&gripperCurrentPosition, &dxl_error), dxl_error, packetHandler);
 
-            printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", currentMotor, dxl_goal_position, dxl_present_position);  // Print current position
+            if (dxl_present_position != positionChange)
+            {
+                positionChange = dxl_present_position;
+                printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", currentMotor, dxl_goal_position, dxl_present_position);  // Print current position
+            }
 
             //check if a open or close command is input
             if (GetKeyState(VK_NUMLOCK))

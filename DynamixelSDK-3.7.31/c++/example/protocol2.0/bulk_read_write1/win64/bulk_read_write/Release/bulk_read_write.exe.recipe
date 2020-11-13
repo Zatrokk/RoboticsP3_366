@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <ProjectOutputs>C:\Users\SebBl\Documents\DynamixelSDK-3.7.31\c++\example\protocol2.0\bulk_read_write1\win64\Release\bulk_read_write.exe</ProjectOutputs>
+  <ProjectOutputs>C:\Users\SebBl\Documents\GitHub\RoboticsP3_366\DynamixelSDK-3.7.31\c++\example\protocol2.0\bulk_read_write1\win64\Release\bulk_read_write.exe</ProjectOutputs>
   <ContentFiles></ContentFiles>
   <SatelliteDlls></SatelliteDlls>
   <NonRecipeFileRefs></NonRecipeFileRefs>
