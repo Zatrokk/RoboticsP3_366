@@ -1,0 +1,3 @@
+﻿hello-myo.obj : error LNK2019: unresolved external symbol "__declspec(dllimport) public: static class dynamixel::PortHandler * __cdecl dynamixel::PortHandler::getPortHandler(char const *)" (__imp_?getPortHandler@PortHandler@dynamixel@@SAPEAV12@PEBD@Z) referenced in function main
+hello-myo.obj : error LNK2019: unresolved external symbol "__declspec(dllimport) public: static class dynamixel::PacketHandler * __cdecl dynamixel::PacketHandler::getPacketHandler(float)" (__imp_?getPacketHandler@PacketHandler@dynamixel@@SAPEAV12@M@Z) referenced in function main
+C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\SDK_pile\samples\x64\Debug\hello-myo-VisualStudio2013.exe : fatal error LNK1120: 2 unresolved externals
