@@ -28,7 +28,7 @@
 #define PROTOCOL_VERSION                2.0                 // See which protocol version is used in the Dynamixel
 
 // Default setting
-#define DXL_ID                          3                   // Dynamixel ID: 1
+#define DXL_ID                          3                   // Dynamixel ID: 1-5
 #define BAUDRATE                        57600
 #define DEVICENAME                      "COM3"              // Check which port is being used on your controller
                                                             // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
@@ -42,9 +42,6 @@
 #define DXL_MOVING_STATUS_THRESHOLD     20                  // Dynamixel moving status threshold
 #define DXL_CLOSED_GRIPPER_VALUE        2025                   //Value for the position of the dynamixel to close,
 #define DXL_OPEN_GRIPPER_VALUE          1500                   //and open the gripper
-
-
-
 
 // Classes that inherit from myo::DeviceListener can be used to receive events from Myo devices. DeviceListener
 // provides several virtual functions for handling different kinds of events. If you do not override an event, the
@@ -76,6 +73,7 @@ public:
             //            myo->unlock(myo::Myo::unlockTimed);
         }
     }
+
 
     // onArmSync() is called whenever Myo has recognized a Sync Gesture after someone has put it on their
     // arm. This lets Myo know which arm it's on and which way it's facing.
@@ -126,10 +124,12 @@ public:
             std::cout << '[' << (isUnlocked ? "unlocked" : "locked  ") << ']'
                 << '[' << (whichArm == myo::armLeft ? "L" : "R") << ']'
                 << '[' << poseString << std::string(14 - poseString.size(), ' ') << ']';
+            std::cout << "Motor: " << currentMotor << std::endl;
         }
         else {
             // Print out a placeholder for the arm and pose when Myo doesn't currently know which arm it's on.
             std::cout << '[' << std::string(8, ' ') << ']' << "[?]" << '[' << std::string(14, ' ') << ']';
+            std::cout << "Motor: " << currentMotor << std::endl;
         }
 
         std::cout << std::flush;
@@ -144,11 +144,101 @@ public:
 
     // These values are set by onPose() above.
     myo::Pose currentPose;
+
+    /*************************DYNAMIXEL STUFF**************************************/
+
+    int motorAmount = 5;
+    int currentMotor = DXL_ID;
+
+    void ChangeMotor()
+    {
+
+        if (currentPose == myo::Pose::fist && currentMotor < 5 && currentMotor >= 1)
+        {
+            currentMotor++;
+        }
+        else if (currentPose == myo::Pose::fingersSpread && currentMotor <= 5 && currentMotor > 1)
+        {
+            currentMotor--;
+        }
+        else if (currentMotor < 1 || currentMotor > 5)
+        {
+            std::cout << "ERROR: Motor cannot be larger than 5" << std::endl;
+        }
+    }
+
+    int getCurrentMotor()
+    {
+        return currentMotor;
+    }
+
+    int currentMotorMaxPos = DXL_MAXIMUM_POSITION_VALUE;
+    int currentMotorMinPos = DXL_MINIMUM_POSITION_VALUE;
+    int32_t dxl_present_position = 0;
+    int dxl_goal_position = 2048;
+
+    void SpinMotor()
+    {
+        if (currentPose == myo::Pose::waveIn && dxl_present_position <= currentMotorMaxPos)
+        {
+            // turn left - up in position
+            dxl_goal_position = dxl_goal_position + DXL_POSITION_CHANGE_SAMPLE;
+            // Write goal position 1
+            std::cout << "Turning left" << std::endl;
+        }
+        else if (currentPose == myo::Pose::waveOut && dxl_present_position <= currentMotorMinPos)
+        {
+            // turn right -  down in position
+            dxl_goal_position = dxl_goal_position - DXL_POSITION_CHANGE_SAMPLE;
+            // Write goal position 1
+            std::cout << "Turning right" << std::endl;
+        }
+    }
+
+    bool succesTest(bool test, int mode)
+    {
+        std::string firstWord;
+        std::string secondWord;
+        switch (mode)
+        {
+        case 1:
+            firstWord = "open";
+            secondWord = "port";
+            break;
+        case 2:
+            firstWord = "change";
+            secondWord = "baudrate";
+            break;
+        default:
+            break;
+        }
+
+        if (test)
+        {
+            std::cout << ("Succeeded to " + firstWord + " the " + secondWord + "!\n");
+            return 1;
+        }
+        else
+        {
+            std::cout << ("Failed to " + firstWord + " the " + secondWord + "!\n");
+            printf("Press any key to terminate...\n");
+            getch();
+            return 0;
+        }
+    }
+
+    int getch()
+    {
+#if defined(_WIN32) || defined(_WIN64)
+        return _getch();
+#endif
+    }
+
 };
+
 
 int main(int argc, char** argv)
 {
-
     // First, we create a Hub with our application identifier. Be sure not to use the com.example namespace when
     // publishing your application. The Hub provides access to one or more Myos.
     myo::Hub hub("Does.This.Mean.Anything");
@@ -171,6 +261,25 @@ int main(int argc, char** argv)
     // Hub::run() to send events to all registered device listeners.
     hub.addListener(&collector);
 
+    // Initialize PortHandler instance
+    // Set the port path
+    // Get methods and members of PortHandlerLinux or PortHandlerWindows
+    dynamixel::PortHandler* portHandler = dynamixel::PortHandler::getPortHandler(DEVICENAME);
+
+    // Initialize PacketHandler instance
+    // Set the protocol version
+    // Get methods and members of Protocol1PacketHandler or Protocol2PacketHandler
+    dynamixel::PacketHandler* packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+
+
+    // Open port
+    if (!collector.succesTest(portHandler->openPort(), 1))
+        return 0;
+
+    // Set port baudrate
+    if (!collector.succesTest(portHandler->setBaudRate(BAUDRATE), 2))
+        return 0;
+
     // Finally we enter our main loop.
     while (1) {
         // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
@@ -179,6 +288,9 @@ int main(int argc, char** argv)
         // After processing events, we call the print() member function we defined above to print out the values we've
         // obtained from any events that have occurred.
         collector.print();
+        collector.getCurrentMotor();
+        collector.ChangeMotor();
+        collector.SpinMotor();
     }
 
 
