@@ -83,7 +83,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>myo64.lib; dxl_x64_cpp.lib</AdditionalDependencies>
+      <AdditionalDependencies>myo64.lib; dxl_x64_cpp.lib; User32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>

@@ -30,15 +30,16 @@
 // Default setting
 #define DXL_ID                          3                   // Dynamixel ID: 1-5
 #define BAUDRATE                        57600
-#define DEVICENAME                      "COM3"              // Check which port is being used on your controller
+#define DEVICENAME                      "COM6"              // Check which port is being used on your controller
                                                             // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
+                                                            // COM6 For Jonathan
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
 #define DXL_MINIMUM_POSITION_VALUE      750                 // Dynamixel will rotate between this value
 #define DXL_MAXIMUM_POSITION_VALUE      3300                // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
-#define DXL_VELOCITY_VALUE              50                  // Value of the dynamixel velocity
-#define DXL_POSITION_CHANGE_SAMPLE      25                  // Value of the change of goal position, each sample
+#define DXL_VELOCITY_VALUE              25                  // Value of the dynamixel velocity
+#define DXL_POSITION_CHANGE_SAMPLE      50                  // Value of the change of goal position, each sample
 #define DXL_MOVING_STATUS_THRESHOLD     20                  // Dynamixel moving status threshold
 #define DXL_CLOSED_GRIPPER_VALUE        2025                   //Value for the position of the dynamixel to close,
 #define DXL_OPEN_GRIPPER_VALUE          1500                   //and open the gripper
@@ -147,23 +148,23 @@ public:
 
     /*************************DYNAMIXEL STUFF**************************************/
 
-    int motorAmount = 5;
+    int motorAmount = 5-1;
     int currentMotor = DXL_ID;
 
     void ChangeMotor()
     {
 
-        if (currentPose == myo::Pose::fist && currentMotor < 5 && currentMotor >= 1)
+        if (currentPose == myo::Pose::fist && currentMotor < motorAmount && currentMotor >= 1)
         {
             currentMotor++;
         }
-        else if (currentPose == myo::Pose::fingersSpread && currentMotor <= 5 && currentMotor > 1)
+        else if (currentPose == myo::Pose::fingersSpread && currentMotor <= motorAmount && currentMotor > 1)
         {
             currentMotor--;
         }
-        else if (currentMotor < 1 || currentMotor > 5)
+        else if (currentMotor < 1 || currentMotor > motorAmount)
         {
-            std::cout << "ERROR: Motor cannot be larger than 5" << std::endl;
+            std::cout << "ERROR: Motor cannot be larger than " << motorAmount << std::endl;
         }
     }
 
@@ -234,11 +235,44 @@ public:
 #endif
     }
 
+    int dxl_comm_result = COMM_TX_FAIL;             // Communication result
+    uint8_t dxl_error = 0;                          // Dynamixel error
+
+//    void resultPrint(dynamixel::PacketHandler* packetHandler)
+//    {
+//        if (dxl_comm_result != COMM_SUCCESS)
+//        {
+//            printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+//        }
+//        else if (dxl_error != 0)
+//        {
+//            printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+//        }
+//    }
+
+    uint32_t gripperCurrentPosition;
+    int gripperGoalPosition;
+    int positionChange;
+    int dxl_openClose_position[2] = { DXL_OPEN_GRIPPER_VALUE, DXL_CLOSED_GRIPPER_VALUE };           // Gripper goal position
+
 };
+
+void resultPrint(int dxl_comm_result, uint8_t dxl_error, dynamixel::PacketHandler* packetHandler)
+{
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    }
+    else if (dxl_error != 0)
+    {
+        printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+    }
+}
 
 
 int main(int argc, char** argv)
 {
+
     // First, we create a Hub with our application identifier. Be sure not to use the com.example namespace when
     // publishing your application. The Hub provides access to one or more Myos.
     myo::Hub hub("Does.This.Mean.Anything");
@@ -280,18 +314,150 @@ int main(int argc, char** argv)
     if (!collector.succesTest(portHandler->setBaudRate(BAUDRATE), 2))
         return 0;
 
+    for (int i = 0; i < collector.motorAmount; i++)
+    {
+        collector.dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, i + 1, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &collector.dxl_error);
+        if (collector.dxl_comm_result != COMM_SUCCESS)
+        {
+            // printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+            printf("%s\n", packetHandler->getTxRxResult(collector.dxl_comm_result));
+        }
+        else if (collector.dxl_error != 0)
+        {
+            // printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+            printf("%s\n", packetHandler->getRxPacketError(collector.dxl_error));
+        }
+        else
+        {
+            printf("Dynamixel has been successfully connected \n");
+        }
+    }
     // Finally we enter our main loop.
-    while (1) {
+    while (1)
+    {
         // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
         // In this case, we wish to update our display 20 times a second, so we run for 1000/20 milliseconds.
-        hub.run(1000 / 20);
+//        hub.run(1000 / 20);
         // After processing events, we call the print() member function we defined above to print out the values we've
         // obtained from any events that have occurred.
-        collector.print();
-        collector.getCurrentMotor();
-        collector.ChangeMotor();
-        collector.SpinMotor();
+//        collector.print();
+//        collector.SpinMotor();
+
+        ///////////////////////////DYNAMIXEL////////////////////
+
+        printf("Press any key to continue! (or press ESC to quit!)\n");
+        if (getch() == VK_ESCAPE)
+            break;
+
+        resultPrint(packetHandler->read4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_PRESENT_POSITION, (uint32_t*)&collector.dxl_present_position, &collector.dxl_error), collector.dxl_error, packetHandler);
+        int dxl_goal_position = collector.dxl_present_position;
+        int u = 0;
+        do
+        {
+            // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
+            // In this case, we wish to update our display 20 times a second, so we run for 1000/20 milliseconds.
+            hub.run(1000 / 20);
+            if (u > 10)
+            {
+                collector.ChangeMotor();
+                u = 0;
+            }
+            u++;
+            int a = collector.currentMotor;
+            if (a != collector.currentMotor)
+            {
+                collector.currentMotor = a;
+                resultPrint(packetHandler->write4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_PROFILE_VELOCITY, DXL_VELOCITY_VALUE, &collector.dxl_error), collector.dxl_error, packetHandler);
+                //switch to min/max value of current motor
+                switch (collector.currentMotor)
+                {
+                case 1:
+                    collector.currentMotorMaxPos = 4000;
+                    collector.currentMotorMinPos = 430;
+                    break;
+                case 2:
+                case 3:
+                    collector.currentMotorMaxPos = DXL_MAXIMUM_POSITION_VALUE;
+                    collector.currentMotorMinPos = DXL_MINIMUM_POSITION_VALUE;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            }
+            if (GetAsyncKeyState(VK_RIGHT))
+            {
+                dxl_goal_position = dxl_goal_position + DXL_POSITION_CHANGE_SAMPLE;
+                // Write goal position 1
+                resultPrint(packetHandler->write4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_GOAL_POSITION, dxl_goal_position, &collector.dxl_error), collector.dxl_error, packetHandler);
+            }
+            else if (GetAsyncKeyState(VK_LEFT))
+            {
+                dxl_goal_position = dxl_goal_position - DXL_POSITION_CHANGE_SAMPLE;
+                // Write goal position 1
+                resultPrint(packetHandler->write4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_GOAL_POSITION, dxl_goal_position, &collector.dxl_error), collector.dxl_error, packetHandler);
+            }
+
+            // Read present position
+            resultPrint(packetHandler->read4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_PRESENT_POSITION, (uint32_t*)&collector.dxl_present_position, &collector.dxl_error), collector.dxl_error, packetHandler);
+            resultPrint(packetHandler->read4ByteTxRx(portHandler, 4, ADDR_PRO_PRESENT_POSITION, (uint32_t*)&collector.gripperCurrentPosition, &collector.dxl_error), collector.dxl_error, packetHandler);
+
+            if (collector.dxl_present_position != collector.positionChange)
+            {
+                collector.positionChange = collector.dxl_present_position;
+                printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\n", collector.currentMotor, dxl_goal_position, collector.dxl_present_position);  // Print current position
+            }
+
+            //check if a open or close command is input
+            if (GetKeyState(VK_CAPITAL))
+            {
+                if (GetAsyncKeyState(VK_UP))            //If up-key is pressed, Open the gripper
+                {
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, collector.dxl_openClose_position[0], &collector.dxl_error), collector.dxl_error, packetHandler);
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, collector.dxl_openClose_position[0], &collector.dxl_error), collector.dxl_error, packetHandler);
+                }
+                else if (GetAsyncKeyState(VK_DOWN))       //If down-key is pressed, close the gripper
+                {
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, collector.dxl_openClose_position[1], &collector.dxl_error), collector.dxl_error, packetHandler);
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, collector.dxl_openClose_position[1], &collector.dxl_error), collector.dxl_error, packetHandler);
+                }
+            }
+            else
+            {
+                if (GetAsyncKeyState(VK_UP))              //If up-key is pressed, slowly closes the gripper
+                {
+                    collector.gripperGoalPosition = collector.gripperCurrentPosition + DXL_POSITION_CHANGE_SAMPLE;
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, collector.gripperGoalPosition, &collector.dxl_error), collector.dxl_error, packetHandler);
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, collector.gripperGoalPosition, &collector.dxl_error), collector.dxl_error, packetHandler);
+                }
+                else if (GetAsyncKeyState(VK_DOWN))       //If down-key is pressed, opens the gripper
+                {
+                    collector.gripperGoalPosition = collector.gripperCurrentPosition - DXL_POSITION_CHANGE_SAMPLE;
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, collector.gripperGoalPosition, &collector.dxl_error), collector.dxl_error, packetHandler);
+                    resultPrint(packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, collector.gripperGoalPosition, &collector.dxl_error), collector.dxl_error, packetHandler);
+                }
+            }
+        } while (collector.dxl_goal_position <= collector.currentMotorMaxPos && collector.currentMotorMinPos <= collector.dxl_goal_position);    //Repeat until present position is within the threshold of goal position
+        
+        std::cout << ("Position out of bound, moving to nearest position\n");
+        resultPrint(packetHandler->read4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_PRESENT_POSITION, (uint32_t*)&collector.dxl_present_position, &collector.dxl_error), collector.dxl_error, packetHandler);
+        if (collector.dxl_present_position < collector.currentMotorMinPos)
+        {
+            dxl_goal_position = collector.currentMotorMinPos;
+            resultPrint(packetHandler->write4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_GOAL_POSITION, dxl_goal_position, &collector.dxl_error), collector.dxl_error, packetHandler);
+        }
+        else if (collector.dxl_present_position > collector.currentMotorMaxPos)
+        {
+            dxl_goal_position = collector.currentMotorMaxPos;
+            resultPrint(packetHandler->write4ByteTxRx(portHandler, collector.currentMotor, ADDR_PRO_GOAL_POSITION, dxl_goal_position, &collector.dxl_error), collector.dxl_error, packetHandler);
+        }
     }
 
+    // Disable Dynamixel Torque
+    resultPrint(packetHandler->write1ByteTxRx(portHandler, DXL_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE, &collector.dxl_error), collector.dxl_error, packetHandler);
 
+    // Close port
+    portHandler->closePort();
+
+    return 0;
 }
