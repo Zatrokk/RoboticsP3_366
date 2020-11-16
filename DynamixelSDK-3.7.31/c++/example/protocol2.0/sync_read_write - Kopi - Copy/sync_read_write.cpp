@@ -404,7 +404,7 @@ int main()
                 GetCursorPos(&cursorPos);
                 if (cursorPos.x != mX || cursorPos.y != mY)
                 {
-                    mX = cursorPos.x;
+                    mX = SCREEN_WIDTH - cursorPos.x;
                     mY = SCREEN_HEIGHT - cursorPos.y;
                     std::cout << mX << " , " << mY << std::endl;
                     int dm1X = cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE);
