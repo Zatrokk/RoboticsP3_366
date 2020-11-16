@@ -191,12 +191,10 @@ public:
         if (currentPose == myo::Pose::fist)
         {
             MyPose = 0;
-            std::cout << "Shut it" << std::endl;
         }
         else if (currentPose == myo::Pose::fingersSpread)
         {
             MyPose = 1;
-            std::cout << "Open sesame" << std::endl;
         }
     }
 
