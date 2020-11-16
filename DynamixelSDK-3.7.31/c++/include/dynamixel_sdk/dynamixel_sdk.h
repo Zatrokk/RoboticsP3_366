@@ -27,7 +27,7 @@
 #include "group_bulk_write.h"
 #include "group_sync_read.h"
 #include "group_sync_write.h"
-#include "packet_handler.h"
+#include "../dynamixel_sdk/packet_handler.h"
 #include "port_handler.h"
 
 

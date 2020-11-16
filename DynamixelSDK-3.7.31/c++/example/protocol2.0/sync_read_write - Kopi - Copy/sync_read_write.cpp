@@ -25,11 +25,7 @@
 // Be sure that Dynamixel PRO properties are already set as %% ID : 1 / Baudnum : 1 (Baudrate : 57600)
 //
 
-#if defined(__linux__) || defined(__APPLE__)
-#include <fcntl.h>
-#include <termios.h>
-#define STDIN_FILENO 0
-#elif defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64)
 #include <conio.h>
 #include <Windows.h>
 #endif
@@ -38,7 +34,17 @@
 #include <stdio.h>
 #include <iostream>
 
-#include "dynamixel_sdk.h"                                  // Uses Dynamixel SDK library
+#include "../../include/dynamixel_sdk/dynamixel_sdk.h"                                  // Uses Dynamixel SDK library
+
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <iomanip>
+#include <stdexcept>
+#include <string>
+#include <algorithm>
+// The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
+#include "../../../../myo-sdk-win-0.9.0 - For tests/include/myo/myo.hpp"
+
 
 
 // Control table address
@@ -58,8 +64,9 @@
 #define DXL1_ID                         2                   // Dynamixel#1 ID: 1
 #define DXL2_ID                         1                   // Dynamixel#2 ID: 2
 #define BAUDRATE                        57600
-#define DEVICENAME                      "COM3"      // Check which port is being used on your controller
+#define DEVICENAME                      "COM6"      // Check which port is being used on your controller
                                                             // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
+                                                            // COM6 for Jonathan
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
@@ -72,55 +79,139 @@
 #define DXL_CLOSED_GRIPPER_VALUE        2025                   //Value for the position of the dynamixel to close,
 #define DXL_OPEN_GRIPPER_VALUE          1500                   //and open the gripper
 
-#define SCREEN_WIDTH                    1535
-#define SCREEN_HEIGHT                   863
+#define SCREEN_WIDTH                    1500
+#define SCREEN_HEIGHT                   1000                //Giver dødzone i bunden af skærmen som det er nu
 
 #define ESC_ASCII_VALUE                 0x1b
 
+// Classes that inherit from myo::DeviceListener can be used to receive events from Myo devices. DeviceListener
+// provides several virtual functions for handling different kinds of events. If you do not override an event, the
+// default behavior is to do nothing.
+class DataCollector : public myo::DeviceListener {
+public:
+    DataCollector()
+        : onArm(false), isUnlocked(false), currentPose()
+    {
+    }
+
+    // onPose() is called whenever the Myo detects that the person wearing it has changed their pose, for example,
+    // making a fist, or not making a fist anymore.
+    void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose)
+    {
+        currentPose = pose;
+
+        if (pose != myo::Pose::unknown && pose != myo::Pose::rest) {
+            // Tell the Myo to stay unlocked until told otherwise. We do that here so you can hold the poses without the
+            // Myo becoming locked.
+            myo->unlock(myo::Myo::unlockHold);
+
+            // Notify the Myo that the pose has resulted in an action, in this case changing
+            // the text on the screen. The Myo will vibrate.
+            myo->notifyUserAction();
+            //        } else {
+                        // Tell the Myo to stay unlocked only for a short period. This allows the Myo to stay unlocked while poses
+                        // are being performed, but lock after inactivity.
+            //            myo->unlock(myo::Myo::unlockTimed);
+        }
+    }
+
+    // onArmSync() is called whenever Myo has recognized a Sync Gesture after someone has put it on their
+    // arm. This lets Myo know which arm it's on and which way it's facing.
+    void onArmSync(myo::Myo* myo, uint64_t timestamp, myo::Arm arm, myo::XDirection xDirection, float rotation,
+        myo::WarmupState warmupState)
+    {
+        onArm = true;
+        whichArm = arm;
+    }
+
+    // onArmUnsync() is called whenever Myo has detected that it was moved from a stable position on a person's arm after
+    // it recognized the arm. Typically this happens when someone takes Myo off of their arm, but it can also happen
+    // when Myo is moved around on the arm.
+    void onArmUnsync(myo::Myo* myo, uint64_t timestamp)
+    {
+        onArm = false;
+    }
+
+    // onUnlock() is called whenever Myo has become unlocked, and will start delivering pose events.
+    void onUnlock(myo::Myo* myo, uint64_t timestamp)
+    {
+        isUnlocked = true;
+    }
+
+    // onLock() is called whenever Myo has become locked. No pose events will be sent until the Myo is unlocked again.
+    void onLock(myo::Myo* myo, uint64_t timestamp)
+    {
+        isUnlocked = false;
+    }
+
+    // There are other virtual functions in DeviceListener that we could override here, like onAccelerometerData().
+    // For this example, the functions overridden above are sufficient.
+
+    // We define this function to print the current values that were updated by the on...() functions above.
+    void print()
+    {
+        // Clear the current line
+        std::cout << '\r';
+
+        if (onArm) {
+            // Print out the lock state, the currently recognized pose, and which arm Myo is being worn on.
+
+            // Pose::toString() provides the human-readable name of a pose. We can also output a Pose directly to an
+            // output stream (e.g. std::cout << currentPose;). In this case we want to get the pose name's length so
+            // that we can fill the rest of the field with spaces below, so we obtain it as a string using toString().
+            std::string poseString = currentPose.toString();
+
+            std::cout << '[' << (isUnlocked ? "unlocked" : "locked  ") << ']'
+                << '[' << (whichArm == myo::armLeft ? "L" : "R") << ']'
+                << '[' << poseString << std::string(14 - poseString.size(), ' ') << ']';
+        }
+        else {
+            // Print out a placeholder for the arm and pose when Myo doesn't currently know which arm it's on.
+            std::cout << '[' << std::string(8, ' ') << ']' << "[?]" << '[' << std::string(14, ' ') << ']';
+        }
+
+        std::cout << std::flush;
+    }
+
+    // These values are set by onArmSync() and onArmUnsync() above.
+    bool onArm;
+    myo::Arm whichArm;
+
+    // This is set by onUnlocked() and onLocked() above.
+    bool isUnlocked;
+
+    // These values are set by onPose() above.
+    myo::Pose currentPose;
+
+    int MyPose;
+
+    void GripperPose()
+    {
+
+        if (currentPose == myo::Pose::fist)
+        {
+            MyPose = 0;
+            std::cout << "Shut it" << std::endl;
+        }
+        else if (currentPose == myo::Pose::fingersSpread)
+        {
+            MyPose = 1;
+            std::cout << "Open sesame" << std::endl;
+        }
+    }
+
+};
+
 int getch()
 {
-#if defined(__linux__) || defined(__APPLE__)
-  struct termios oldt, newt;
-  int ch;
-  tcgetattr(STDIN_FILENO, &oldt);
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-  ch = getchar();
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-  return ch;
-#elif defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64)
     return _getch();
 #endif
 }
 
 int kbhit(void)
 {
-#if defined(__linux__) || defined(__APPLE__)
-  struct termios oldt, newt;
-  int ch;
-  int oldf;
-
-  tcgetattr(STDIN_FILENO, &oldt);
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-  oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-  fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-
-  ch = getchar();
-
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-  fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-  if (ch != EOF)
-  {
-    ungetc(ch, stdin);
-    return 1;
-  }
-
-  return 0;
-#elif defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64)
     return _kbhit();
 #endif
 }
@@ -134,6 +225,13 @@ double cursorConverter(int cursorPos, double screenValue, double DXL_Max, double
 
 int main()
 {
+
+    myo::Hub hub("Does.This.Mean.Anything");
+    std::cout << "Attempting to find a Myo..." << std::endl;
+    myo::Myo* myo = hub.waitForMyo(10000);
+    std::cout << "Connected to a Myo armband!" << std::endl << std::endl;
+    DataCollector collector;
+    hub.addListener(&collector);
     // Initialize PortHandler instance
     // Set the port path
     // Get methods and members of PortHandlerLinux or PortHandlerWindows
@@ -303,11 +401,13 @@ int main()
             dontRepeat = false;
             while (GetKeyState(VK_CAPITAL))
             {
+                hub.run(1000 / 20);
+                collector.GripperPose();
                 GetCursorPos(&cursorPos);
                 if (cursorPos.x != mX || cursorPos.y != mY)
                 {
                     mX = cursorPos.x;
-                    mY = cursorPos.y;
+                    mY = SCREEN_HEIGHT - cursorPos.y;
                     std::cout << mX << " , " << mY << std::endl;
                     int dm1X = cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE);
                     int dm1Y = cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE);
@@ -360,12 +460,12 @@ int main()
                     // Clear syncwrite parameter storage
                     groupSyncWrite.clearParam();
                 }
-                if (GetAsyncKeyState(VK_LSHIFT)!=0)              //If up-key is pressed, Open the gripper
+                if (collector.MyPose == 1)              //If up-key is pressed, Open the gripper
                 {
                     packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[0], &dxl_error);
                     packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[0], &dxl_error);
                 }
-                else if (GetAsyncKeyState(VK_LCONTROL)!=0)       //If down-key is pressed, close the gripper
+                else if (collector.MyPose == 0)       //If down-key is pressed, close the gripper
                 {
                     packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[1], &dxl_error);
                     packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[1], &dxl_error);
