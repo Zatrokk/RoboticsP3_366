@@ -54,6 +54,7 @@
 #define PROTOCOL_VERSION                2.0                 // See which protocol version is used in the Dynamixel
 
 // Default setting
+#define DXL0_ID                         3                   // Dynamixel#0 ID: 0
 #define DXL1_ID                         2                   // Dynamixel#1 ID: 1
 #define DXL2_ID                         1                   // Dynamixel#2 ID: 2
 #define BAUDRATE                        57600
@@ -225,6 +226,13 @@ int main()
 
 
     // Add parameter storage for Dynamixel#1 present position value
+    dxl_addparam_result = groupSyncRead.addParam(DXL0_ID);
+    if (dxl_addparam_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupSyncRead addparam failed", DXL0_ID);
+        return 0;
+    }
+    // Add parameter storage for Dynamixel#1 present position value
     dxl_addparam_result = groupSyncRead.addParam(DXL1_ID);
     if (dxl_addparam_result != true)
     {
@@ -236,6 +244,18 @@ int main()
     if (dxl_addparam_result != true)
     {
         fprintf(stderr, "[ID:%03d] groupSyncRead addparam failed", DXL2_ID);
+        return 0;
+    }
+    // Allocate starting position value into byte array
+    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dxl_goal_position - 1028));
+    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dxl_goal_position - 1028));
+    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dxl_goal_position - 1028));
+    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dxl_goal_position - 1028));
+    // Add Dynamixel#1 goal position value to the Syncwrite storage
+    dxl_addparam_result = groupSyncWrite.addParam(DXL0_ID, param_goal_position);
+    if (dxl_addparam_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL0_ID);
         return 0;
     }
     // Allocate starting position value into byte array
@@ -257,6 +277,7 @@ int main()
         fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL2_ID);
         return 0;
     }
+
     // Syncwrite goal position
     dxl_comm_result = groupSyncWrite.txPacket();
     if (dxl_comm_result != COMM_SUCCESS) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
@@ -288,29 +309,49 @@ int main()
                     mX = cursorPos.x;
                     mY = cursorPos.y;
                     std::cout << mX << " , " << mY << std::endl;
+                    int dm1X = cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE);
+                    int dm1Y = cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE);
+                    int dm2Y = (1024 * 3) - dm1Y;
+
+                    if (dm2Y <= DXL1_MAXIMUM_POSITION_VALUE && dm2Y >= DXL1_MINIMUM_POSITION_VALUE)
+                    {
+                        // Allocate DXL1 goal position value into byte array
+                        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm2Y));
+                        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dm2Y));
+                        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dm2Y));
+                        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dm2Y));
+                        // Add Dynamixel#2 goal position value to the Syncwrite storage
+                        dxl_addparam_result = groupSyncWrite.addParam(DXL0_ID, param_goal_position);
+                        if (dxl_addparam_result != true)
+                        {
+                            fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL0_ID);
+                            return 0;
+                        }
+                        // Allocate DXL1 goal position value into byte array
+                        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm1Y));
+                        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dm1Y));
+                        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dm1Y));
+                        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dm1Y));
+                        // Add Dynamixel#2 goal position value to the Syncwrite storage
+                        dxl_addparam_result = groupSyncWrite.addParam(DXL1_ID, param_goal_position);
+                        if (dxl_addparam_result != true)
+                        {
+                            fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL1_ID);
+                            return 0;
+                        }
+                    }
+
 
                     // Allocate DXL2 goal position value into byte array
-                    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE)));
-                    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE)));
-                    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE)));
-                    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE)));
+                    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm1X));
+                    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dm1X));
+                    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dm1X));
+                    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dm1X));
                     // Add Dynamixel#1 goal position value to the Syncwrite storage
                     dxl_addparam_result = groupSyncWrite.addParam(DXL2_ID, param_goal_position);
                     if (dxl_addparam_result != true)
                     {
                         fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL2_ID);
-                        return 0;
-                    }
-                    // Allocate DXL1 goal position value into byte array
-                    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE)));
-                    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE)));
-                    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE)));
-                    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE)));
-                    // Add Dynamixel#2 goal position value to the Syncwrite storage
-                    dxl_addparam_result = groupSyncWrite.addParam(DXL1_ID, param_goal_position);
-                    if (dxl_addparam_result != true)
-                    {
-                        fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL1_ID);
                         return 0;
                     }
                     // Syncwrite goal position
