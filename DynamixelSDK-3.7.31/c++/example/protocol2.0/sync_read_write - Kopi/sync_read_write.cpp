@@ -67,7 +67,7 @@
 #define DXL2_MINIMUM_POSITION_VALUE     400             // Dynamixel will rotate between this value
 #define DXL2_MAXIMUM_POSITION_VALUE     4000              // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
 #define DXL1_MINIMUM_POSITION_VALUE     750             // Dynamixel will rotate between this value
-#define DXL1_MAXIMUM_POSITION_VALUE     3300 
+#define DXL1_MAXIMUM_POSITION_VALUE     2322 
 #define DXL_MOVING_STATUS_THRESHOLD     20                  // Dynamixel moving status threshold
 #define DXL_CLOSED_GRIPPER_VALUE        2025                   //Value for the position of the dynamixel to close,
 #define DXL_OPEN_GRIPPER_VALUE          1500                   //and open the gripper
@@ -209,7 +209,7 @@ int main()
             printf("Dynamixel#%d has been successfully connected \n", i+1);
         }
         // Set Velocity for Dynamixel#i+1
-        dxl_comm_result = packetHandler->write4ByteTxRx(portHandler, i + 1, 112, 50, &dxl_error);
+        dxl_comm_result = packetHandler->write4ByteTxRx(portHandler, i + 1, 112, 75, &dxl_error);
         if (dxl_comm_result != COMM_SUCCESS)
         {
             printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
@@ -223,7 +223,6 @@ int main()
             printf("Dynamixel#%d has been successfully connected \n", i + 1);
         }
     }
-
 
     // Add parameter storage for Dynamixel#1 present position value
     dxl_addparam_result = groupSyncRead.addParam(DXL0_ID);
@@ -307,7 +306,7 @@ int main()
                 if (cursorPos.x != mX || cursorPos.y != mY)
                 {
                     mX = cursorPos.x;
-                    mY = cursorPos.y;
+                    mY = SCREEN_HEIGHT - cursorPos.y;
                     std::cout << mX << " , " << mY << std::endl;
                     int dm1X = cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE);
                     int dm1Y = cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE);
