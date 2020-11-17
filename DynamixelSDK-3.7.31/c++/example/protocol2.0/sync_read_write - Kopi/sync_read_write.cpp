@@ -239,6 +239,13 @@ int main()
         return 0;
     }
     // Add parameter storage for Dynamixel#1 present position value
+    dxl_addparam_result = groupSyncRead.addParam(DXL0_ID);
+    if (dxl_addparam_result != true)
+    {
+        fprintf(stderr, "[ID:%03d] groupSyncRead addparam failed", DXL0_ID);
+        return 0;
+    }
+    // Add parameter storage for Dynamixel#1 present position value
     dxl_addparam_result = groupSyncRead.addParam(DXL1_ID);
     if (dxl_addparam_result != true)
     {
