@@ -64,7 +64,7 @@
 #define DXL1_ID                         2                   // Dynamixel#1 ID: 1
 #define DXL2_ID                         1                   // Dynamixel#2 ID: 2
 #define BAUDRATE                        57600
-#define DEVICENAME                      "COM6"      // Check which port is being used on your controller
+#define DEVICENAME                      "COM3"      // Check which port is being used on your controller
                                                             // ex) Windows: "COM1"   Linux: "/dev/ttyUSB0" Mac: "/dev/tty.usbserial-*"
                                                             // COM6 for Jonathan
 
@@ -74,13 +74,13 @@
 #define DXL2_MINIMUM_POSITION_VALUE     400             // Dynamixel will rotate between this value
 #define DXL2_MAXIMUM_POSITION_VALUE     4000              // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
 #define DXL1_MINIMUM_POSITION_VALUE     750             // Dynamixel will rotate between this value
-#define DXL1_MAXIMUM_POSITION_VALUE     3300 
+#define DXL1_MAXIMUM_POSITION_VALUE     2322 
 #define DXL_MOVING_STATUS_THRESHOLD     20                  // Dynamixel moving status threshold
 #define DXL_CLOSED_GRIPPER_VALUE        2025                   //Value for the position of the dynamixel to close,
 #define DXL_OPEN_GRIPPER_VALUE          1500                   //and open the gripper
 
-#define SCREEN_WIDTH                    1500
-#define SCREEN_HEIGHT                   1000                //Giver dødzone i bunden af skærmen som det er nu
+#define SCREEN_WIDTH                    1565
+#define SCREEN_HEIGHT                   865                //Giver dødzone i bunden af skærmen som det er nu
 
 #define ESC_ASCII_VALUE                 0x1b
 
@@ -343,10 +343,10 @@ int main()
         return 0;
     }
     // Allocate starting position value into byte array
-    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dxl_goal_position - 1028));
-    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dxl_goal_position - 1028));
-    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dxl_goal_position - 1028));
-    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dxl_goal_position - 1028));
+    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dxl_goal_position - 1024));
+    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dxl_goal_position - 1024));
+    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dxl_goal_position - 1024));
+    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dxl_goal_position - 1024));
     // Add Dynamixel#1 goal position value to the Syncwrite storage
     dxl_addparam_result = groupSyncWrite.addParam(DXL0_ID, param_goal_position);
     if (dxl_addparam_result != true)
@@ -405,19 +405,19 @@ int main()
                 if (cursorPos.x != mX || cursorPos.y != mY)
                 {
                     mX = SCREEN_WIDTH - cursorPos.x;
-                    mY = SCREEN_HEIGHT - cursorPos.y;
+                    mY = cursorPos.y;
                     std::cout << mX << " , " << mY << std::endl;
                     int dm1X = cursorConverter(mX, SCREEN_WIDTH, DXL2_MAXIMUM_POSITION_VALUE, DXL2_MINIMUM_POSITION_VALUE);
                     int dm1Y = cursorConverter(mY, SCREEN_HEIGHT, DXL1_MAXIMUM_POSITION_VALUE, DXL1_MINIMUM_POSITION_VALUE);
-                    int dm2Y = (1024 * 3) - dm1Y;
+                    int dm2Y = (1040 * 3) - dm1Y;
 
                     if (dm2Y <= DXL1_MAXIMUM_POSITION_VALUE && dm2Y >= DXL1_MINIMUM_POSITION_VALUE)
                     {
                         // Allocate DXL1 goal position value into byte array
-                        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm2Y));
-                        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dm2Y));
-                        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dm2Y));
-                        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dm2Y));
+                        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm1Y));
+                        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dm1Y));
+                        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dm1Y));
+                        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dm1Y));
                         // Add Dynamixel#2 goal position value to the Syncwrite storage
                         dxl_addparam_result = groupSyncWrite.addParam(DXL0_ID, param_goal_position);
                         if (dxl_addparam_result != true)
@@ -426,10 +426,10 @@ int main()
                             return 0;
                         }
                         // Allocate DXL1 goal position value into byte array
-                        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm1Y));
-                        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dm1Y));
-                        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dm1Y));
-                        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dm1Y));
+                        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm2Y));
+                        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dm2Y));
+                        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dm2Y));
+                        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dm2Y));
                         // Add Dynamixel#2 goal position value to the Syncwrite storage
                         dxl_addparam_result = groupSyncWrite.addParam(DXL1_ID, param_goal_position);
                         if (dxl_addparam_result != true)
@@ -438,7 +438,6 @@ int main()
                             return 0;
                         }
                     }
-
 
                     // Allocate DXL2 goal position value into byte array
                     param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dm1X));
@@ -458,12 +457,12 @@ int main()
                     // Clear syncwrite parameter storage
                     groupSyncWrite.clearParam();
                 }
-                if (collector.MyPose == 1)              //If up-key is pressed, Open the gripper
+                if (collector.MyPose == 1 || GetAsyncKeyState(VK_LCONTROL) != 0)              //If up-key is pressed, Open the gripper
                 {
                     packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[0], &dxl_error);
                     packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[0], &dxl_error);
                 }
-                else if (collector.MyPose == 0)       //If down-key is pressed, close the gripper
+                else if (collector.MyPose == 0 || GetAsyncKeyState(VK_LSHIFT) != 0)       //If down-key is pressed, close the gripper
                 {
                     packetHandler->write4ByteTxRx(portHandler, 4, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[1], &dxl_error);
                     packetHandler->write4ByteTxRx(portHandler, 5, ADDR_PRO_GOAL_POSITION, dxl_openClose_position[1], &dxl_error);
@@ -478,40 +477,8 @@ int main()
         if (GetAsyncKeyState(VK_ESCAPE))
             break;
     }
-
-  /*while(1)
-  {
-    // Allocate goal position value into byte array
-    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dxl_goal_position[index]));
-    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dxl_goal_position[index]));
-    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dxl_goal_position[index]));
-    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dxl_goal_position[index]));
-
-    // Add Dynamixel#1 goal position value to the Syncwrite storage
-    dxl_addparam_result = groupSyncWrite.addParam(DXL1_ID, param_goal_position);
-    if (dxl_addparam_result != true)
-    {
-      fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL1_ID);
-      return 0;
-    }
-
-    // Add Dynamixel#2 goal position value to the Syncwrite parameter storage
-    dxl_addparam_result = groupSyncWrite.addParam(DXL2_ID, param_goal_position);
-    if (dxl_addparam_result != true)
-    {
-      fprintf(stderr, "[ID:%03d] groupSyncWrite addparam failed", DXL2_ID);
-      return 0;
-    }
-
-    // Syncwrite goal position
-    dxl_comm_result = groupSyncWrite.txPacket();
-    if (dxl_comm_result != COMM_SUCCESS) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-
-    // Clear syncwrite parameter storage
-    groupSyncWrite.clearParam();
-
-    do
-    {
+       
+    /*{
       // Syncread present position
       dxl_comm_result = groupSyncRead.txRxPacket();
       if (dxl_comm_result != COMM_SUCCESS)
@@ -550,18 +517,6 @@ int main()
       dxl2_present_position = groupSyncRead.getData(DXL2_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
 
       printf("[ID:%03d] GoalPos:%03d  PresPos:%03d\t[ID:%03d] GoalPos:%03d  PresPos:%03d\n", DXL1_ID, dxl_goal_position[index], dxl1_present_position, DXL2_ID, dxl_goal_position[index], dxl2_present_position);
-
-    }while((abs(dxl_goal_position[index] - dxl1_present_position) > DXL_MOVING_STATUS_THRESHOLD) || (abs(dxl_goal_position[index] - dxl2_present_position) > DXL_MOVING_STATUS_THRESHOLD));
-
-    // Change goal position
-    if (index == 0)
-    {
-      index = 1;
-    }
-    else
-    {
-      index = 0;
-    }
   }*/
 
   // Disable Dynamixel#1 Torque

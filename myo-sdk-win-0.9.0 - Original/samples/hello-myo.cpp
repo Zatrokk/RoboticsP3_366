@@ -137,6 +137,8 @@ public:
         }
 
         std::cout << std::flush;
+
+        std::cout << roll_w << std::endl;
     }
 
     // These values are set by onArmSync() and onArmUnsync() above.

@@ -1,8 +1,8 @@
 ﻿  hello-myo.cpp
-C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(39,1): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
-C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(39,1): message : destructor or deallocator has a (possibly implicit) non-throwing exception specification
-C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(45,1): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
-C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(45,1): message : destructor or deallocator has a (possibly implicit) non-throwing exception specification
-  hello-myo-VisualStudio2013.vcxproj -> C:\Users\falk1\OneDrive\Documents\AAU\Github stuff\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\samples\x64\Debug\hello-myo-VisualStudio2013.exe
+C:\Users\SebBl\Documents\GitHub\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(39,1): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
+C:\Users\SebBl\Documents\GitHub\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(39,1): message : destructor or deallocator has a (possibly implicit) non-throwing exception specification
+C:\Users\SebBl\Documents\GitHub\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(45,1): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
+C:\Users\SebBl\Documents\GitHub\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\include\myo\cxx\detail\ThrowOnError.hpp(45,1): message : destructor or deallocator has a (possibly implicit) non-throwing exception specification
+  hello-myo-VisualStudio2013.vcxproj -> C:\Users\SebBl\Documents\GitHub\RoboticsP3_366\myo-sdk-win-0.9.0 - Original\samples\x64\Debug\hello-myo-VisualStudio2013.exe
   Copy required dlls to output directory
           1 file(s) copied.
